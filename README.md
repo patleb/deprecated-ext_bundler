@@ -8,6 +8,8 @@ $ gem install ext_bundler
 
 ### Usage
 
+In your project Gemfile:
+
 ```ruby
 # Gemfile
 source 'https://rubygems.org'
@@ -20,6 +22,19 @@ end
 
 load File.join(path, 'lib', 'ext_bundler', 'bundler_decorator.rb')
 
+...
+```
+
+In some other gem's gemspec file:
+
+```ruby
+# gem_name.gemspec
+...
+Gem::Specification.new do |s|
+  ...
+  s.add_dependency 'some_other_gem', github: 'account_name/repo_name'
+  ...
+end
 ...
 ```
 
