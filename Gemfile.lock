@@ -1,0 +1,20 @@
+PATH
+  remote: .
+  specs:
+    ext_bundler (0.1.0)
+      bundler
+      gem-path (~> 0.6)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    gem-path (0.6.2)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  ext_bundler!
+
+BUNDLED WITH
+   1.15.1
