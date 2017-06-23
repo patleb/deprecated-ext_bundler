@@ -20,7 +20,7 @@ else
   File.write('.ext_bundler', path = `gem path ext_bundler`.strip)
 end
 
-load File.join(path, 'lib', 'ext_bundler', 'bundler_decorator.rb')
+load File.join(path, 'lib', 'ext_bundler', 'bundler.rb')
 
 ...
 ```
