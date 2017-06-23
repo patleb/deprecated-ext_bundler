@@ -38,4 +38,12 @@ end
 ...
 ```
 
+In your project .gitignore:
+
+```
+...
+.ext_bundler
+...
+```
+
 This project rocks and uses MIT-LICENSE.
