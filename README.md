@@ -25,25 +25,31 @@ load File.join(path, 'lib', 'ext_bundler', 'bundler_decorator.rb')
 ...
 ```
 
+In your project .gitignore:
+
+```
+...
+
+.ext_bundler
+
+...
+```
+
 In some other gem's gemspec file:
 
 ```ruby
 # gem_name.gemspec
 ...
+
 Gem::Specification.new do |s|
+
   ...
+
   s.add_dependency 'some_other_gem', github: 'account_name/repo_name'
+
   ...
+
 end
-...
-```
-
-In your project .gitignore:
-
-```
-...
-.ext_bundler
-...
 ```
 
 This project rocks and uses MIT-LICENSE.
