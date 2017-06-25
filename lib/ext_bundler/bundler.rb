@@ -65,3 +65,7 @@ module Gem
     prepend WithSource
   end
 end
+
+if Bundler::VERSION < '2.0'
+  Bundler.settings["github.https"] = true
+end
