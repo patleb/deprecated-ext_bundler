@@ -14,14 +14,7 @@ In your project Gemfile:
 # Gemfile
 source 'https://rubygems.org'
 
-ext_bundler_cache = '.bundle/ext_bundler_cache'
-if File.exist? ext_bundler_cache
-  ext_bundler_path = File.readlines(ext_bundler_cache).first
-else
-  ext_bundler_path = File.join(`gem path ext_bundler`.strip, 'lib', 'ext_bundler', 'bundler.rb')
-  File.write(ext_bundler_cache, ext_bundler_path)
-end
-load(ext_bundler_path)
+load(Bundler.settings['ext_bundler'] ||= File.join(`gem path ext_bundler`.strip, 'lib', 'ext_bundler', 'bundler.rb'))
 
 # ...
 ```
@@ -43,15 +36,15 @@ Gem::Specification.new do |s|
 end
 ```
 
-After running `bundle`, a `Gemfile.urls` is added which contains remote gem sources.
+After running `bundle`, a `Gemfile.sourced_gems` is added which contains remote sources.
 
-Then, you can run `bundle install` and remote sources will added.
+Then, you can run `bundle install` and remote sources will added to your `Gemfile.lock`.
 
-Every time `Gemfile.urls` must be updated (for example, after a `bundle update`), you must run `bundle` afterward.
+Every time `Gemfile.sourced_gems` must be updated (for example, after a `bundle update`), you must run `bundle` afterward.
 
 ### Upgrading
 
-Clear `.bundle` directory within your project after updating ext_bundler gem.
+Clear `.bundle` directory within your project after updating `ext_bundler` gem.
 
 ### Notes
 
