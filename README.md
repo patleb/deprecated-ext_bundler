@@ -36,11 +36,11 @@ Gem::Specification.new do |s|
 end
 ```
 
-After running `bundle`, a `Gemfile.sourced_gems` is added which contains remote sources.
+After running `bundle`, a `Gemfile.sourced_gems` is added or updated.
 
 Then, you can run `bundle install` and remote sources will added to your `Gemfile.lock`.
 
-Every time `Gemfile.sourced_gems` must be updated (for example, after a `bundle update`), you must run `bundle` afterward.
+Which means you also have to run `bundle` after a `bundle update` to update you `Gemfile.sourced_gems`.
 
 ### Upgrading
 
