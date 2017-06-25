@@ -3,6 +3,10 @@ module Bundler
     attr_accessor :sourced_gems, :sourced_gems_computed
 
     module WithSource
+      def gemfile_urls
+        @_gemfile_urls ||= root.join('Gemfile.urls')
+      end
+
       def definition(unlock = nil)
         super
 
@@ -12,6 +16,23 @@ module Bundler
         end
 
         @definition
+      end
+
+      def default_gemfile
+        @_default_gemfile ||= begin
+          default_file = super
+          if ARGV[0] == 'update' && File.exist?(gemfile_urls)
+            update_file = root.join('.bundle/ext_bundler_update')
+            FileUtils.copy(default_file, update_file)
+            File.open(update_file, 'a') do |f|
+              File.readlines(gemfile_urls).each do |line|
+                f.puts line
+              end
+            end
+            default_file = update_file
+          end
+          default_file
+        end
       end
     end
     prepend WithSource
@@ -23,8 +44,7 @@ module Bundler
         def evaluate(gemfile, lockfile, unlock)
           return super unless (paths = Bundler.sourced_gems)
 
-          urlsfile = gemfile.dirname.join('Gemfile.urls')
-          File.open(urlsfile, "w") do |f|
+          File.open(Bundler.gemfile_urls, "w") do |f|
             paths.each do |name, options|
               options = options.each_with_object([]) do |(key, value), memo|
                 memo << "#{key}: '#{value}'"
@@ -34,7 +54,7 @@ module Bundler
           end
           builder = new
           builder.eval_gemfile(gemfile)
-          builder.eval_gemfile(urlsfile)
+          builder.eval_gemfile(Bundler.gemfile_urls)
           builder.to_definition(lockfile, unlock)
         end
       end
@@ -54,8 +74,8 @@ module Gem
           {}
         end
 
-        Bundler.sourced_gems ||= {}
         if options.any?
+          Bundler.sourced_gems ||= {}
           Bundler.sourced_gems[gem] = options
         end
 
