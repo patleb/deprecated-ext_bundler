@@ -3,15 +3,28 @@ unless defined?(Bundler::EXT_BUNDLER_LOADED)
     class << self
       attr_accessor :sourced_gems, :sourced_gems_computed
 
+      alias_method :old_default_gemfile, :default_gemfile
+      def default_gemfile
+        @_default_gemfile ||= begin
+          default_file = old_default_gemfile
+
+          if ARGV[0] == 'update' && File.exist?(gemfile_deploy)
+            default_file = gemfile_deploy
+          end
+
+          default_file
+        end
+      end
+
+      def gemfile_sourced
+        @_gemfile_sourced ||= root.join('Gemfile.sourced')
+      end
+
+      def gemfile_deploy
+        @_gemfile_deploy ||= root.join('Gemfile.deploy')
+      end
+
       module WithSource
-        def gemfile_sourced
-          @_gemfile_sourced ||= root.join('Gemfile.sourced')
-        end
-
-        def gemfile_deploy
-          @_gemfile_deploy ||= root.join('Gemfile.deploy')
-        end
-
         def definition(unlock = nil)
           super
 
@@ -21,18 +34,6 @@ unless defined?(Bundler::EXT_BUNDLER_LOADED)
           end
 
           @definition
-        end
-
-        def default_gemfile
-          @_default_gemfile ||= begin
-            default_file = super
-
-            if ARGV[0] == 'update' && File.exist?(gemfile_deploy)
-              default_file = gemfile_deploy
-            end
-
-            default_file
-          end
         end
       end
       prepend WithSource
@@ -56,10 +57,10 @@ unless defined?(Bundler::EXT_BUNDLER_LOADED)
             if Bundler::VERSION < '2.0'
               File.open(Bundler.gemfile_deploy, 'w') do |f|
                 f.puts 'Bundler.settings["github.https"] = true'
-                f.puts File.read(gemfile)
+                f.puts File.read(Bundler.old_default_gemfile)
               end
             else
-              FileUtils.copy(gemfile, Bundler.gemfile_deploy)
+              FileUtils.copy(Bundler.old_default_gemfile, Bundler.gemfile_deploy)
             end
 
             File.open(Bundler.gemfile_deploy, 'a') do |f|
