@@ -4,8 +4,12 @@ unless defined?(Bundler::EXT_BUNDLER_LOADED)
       attr_accessor :sourced_gems, :sourced_gems_computed
 
       module WithSource
-        def gemfile_sourced_gems
-          @_gemfile_sourced_gems ||= root.join('Gemfile.sourced_gems')
+        def gemfile_sourced
+          @_gemfile_sourced ||= root.join('Gemfile.sourced')
+        end
+
+        def gemfile_deploy
+          @_gemfile_deploy ||= root.join('Gemfile.deploy')
         end
 
         def definition(unlock = nil)
@@ -22,17 +26,27 @@ unless defined?(Bundler::EXT_BUNDLER_LOADED)
         def default_gemfile
           @_default_gemfile ||= begin
             default_file = super
-            if ARGV[0] == 'update' && File.exist?(gemfile_sourced_gems)
-              update_file = app_config_path.join('Gemfile.ext_bundler')
-              FileUtils.copy(default_file, update_file)
-              File.open(update_file, 'a') do |f|
-                File.readlines(gemfile_sourced_gems).each do |line|
-                  f.puts line
-                end
-              end
-              default_file = update_file
+            if ARGV[0] == 'update' && File.exist?(gemfile_sourced)
+              create_gemfile_deploy
+              default_file = gemfile_deploy
             end
             default_file
+          end
+        end
+
+        def create_gemfile_deploy
+          if Bundler::VERSION < '2.0'
+            File.open(gemfile_deploy, 'w') do |f|
+              f.puts 'Bundler.settings["github.https"] = true'
+              f.puts File.read(gemfile)
+            end
+          else
+            FileUtils.copy(gemfile, gemfile_deploy)
+          end
+          File.open(gemfile_deploy, 'a') do |f|
+            File.readlines(gemfile_sourced).each do |line|
+              f.puts line
+            end
           end
         end
       end
@@ -45,7 +59,7 @@ unless defined?(Bundler::EXT_BUNDLER_LOADED)
           def evaluate(gemfile, lockfile, unlock)
             return super unless (paths = Bundler.sourced_gems)
 
-            File.open(Bundler.gemfile_sourced_gems, "w") do |f|
+            File.open(Bundler.gemfile_sourced, "w") do |f|
               paths.each do |name, options|
                 options = options.each_with_object([]) do |(key, value), memo|
                   memo << "#{key}: '#{value}'"
@@ -53,9 +67,10 @@ unless defined?(Bundler::EXT_BUNDLER_LOADED)
                 f.puts("gem '#{name}', #{options.join(', ')}")
               end
             end
+            Bundler.create_gemfile_deploy
             builder = new
             builder.eval_gemfile(gemfile)
-            builder.eval_gemfile(Bundler.gemfile_sourced_gems)
+            builder.eval_gemfile(Bundler.gemfile_sourced)
             builder.to_definition(lockfile, unlock)
           end
         end
