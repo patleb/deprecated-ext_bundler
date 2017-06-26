@@ -54,21 +54,21 @@ unless defined?(Bundler::EXT_BUNDLER_LOADED)
             end
 
             if Bundler::VERSION < '2.0'
-              File.open(gemfile_deploy, 'w') do |f|
+              File.open(Bundler.gemfile_deploy, 'w') do |f|
                 f.puts 'Bundler.settings["github.https"] = true'
                 f.puts File.read(gemfile)
               end
             else
-              FileUtils.copy(gemfile, gemfile_deploy)
+              FileUtils.copy(gemfile, Bundler.gemfile_deploy)
             end
 
-            File.open(gemfile_deploy, 'a') do |f|
-              File.readlines(gemfile_sourced).each do |line|
+            File.open(Bundler.gemfile_deploy, 'a') do |f|
+              File.readlines(Bundler.gemfile_sourced).each do |line|
                 f.puts line
               end
             end
 
-            super(gemfile_deploy, lockfile, unlock)
+            super(Bundler.gemfile_deploy, lockfile, unlock)
           end
         end
         prepend WithSource
