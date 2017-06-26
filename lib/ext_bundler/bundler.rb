@@ -26,27 +26,12 @@ unless defined?(Bundler::EXT_BUNDLER_LOADED)
         def default_gemfile
           @_default_gemfile ||= begin
             default_file = super
-            if ARGV[0] == 'update' && File.exist?(gemfile_sourced)
-              create_gemfile_deploy(default_file)
+
+            if ARGV[0] == 'update' && File.exist?(gemfile_deploy)
               default_file = gemfile_deploy
             end
-            default_file
-          end
-        end
 
-        def create_gemfile_deploy(gemfile)
-          if Bundler::VERSION < '2.0'
-            File.open(gemfile_deploy, 'w') do |f|
-              f.puts 'Bundler.settings["github.https"] = true'
-              f.puts File.read(gemfile)
-            end
-          else
-            FileUtils.copy(gemfile, gemfile_deploy)
-          end
-          File.open(gemfile_deploy, 'a') do |f|
-            File.readlines(gemfile_sourced).each do |line|
-              f.puts line
-            end
+            default_file
           end
         end
       end
@@ -67,11 +52,23 @@ unless defined?(Bundler::EXT_BUNDLER_LOADED)
                 f.puts("gem '#{name}', #{options.join(', ')}")
               end
             end
-            Bundler.create_gemfile_deploy(gemfile)
-            builder = new
-            builder.eval_gemfile(gemfile)
-            builder.eval_gemfile(Bundler.gemfile_sourced)
-            builder.to_definition(lockfile, unlock)
+
+            if Bundler::VERSION < '2.0'
+              File.open(gemfile_deploy, 'w') do |f|
+                f.puts 'Bundler.settings["github.https"] = true'
+                f.puts File.read(gemfile)
+              end
+            else
+              FileUtils.copy(gemfile, gemfile_deploy)
+            end
+
+            File.open(gemfile_deploy, 'a') do |f|
+              File.readlines(gemfile_sourced).each do |line|
+                f.puts line
+              end
+            end
+
+            super(gemfile_deploy, lockfile, unlock)
           end
         end
         prepend WithSource
