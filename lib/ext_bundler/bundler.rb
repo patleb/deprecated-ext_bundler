@@ -27,14 +27,14 @@ unless defined?(Bundler::EXT_BUNDLER_LOADED)
           @_default_gemfile ||= begin
             default_file = super
             if ARGV[0] == 'update' && File.exist?(gemfile_sourced)
-              create_gemfile_deploy
+              create_gemfile_deploy(default_file)
               default_file = gemfile_deploy
             end
             default_file
           end
         end
 
-        def create_gemfile_deploy
+        def create_gemfile_deploy(gemfile)
           if Bundler::VERSION < '2.0'
             File.open(gemfile_deploy, 'w') do |f|
               f.puts 'Bundler.settings["github.https"] = true'
@@ -67,7 +67,7 @@ unless defined?(Bundler::EXT_BUNDLER_LOADED)
                 f.puts("gem '#{name}', #{options.join(', ')}")
               end
             end
-            Bundler.create_gemfile_deploy
+            Bundler.create_gemfile_deploy(gemfile)
             builder = new
             builder.eval_gemfile(gemfile)
             builder.eval_gemfile(Bundler.gemfile_sourced)
