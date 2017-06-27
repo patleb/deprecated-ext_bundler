@@ -38,26 +38,36 @@ Gem::Specification.new do |s|
 end
 ```
 
-After running `bundle install` or `bundle update`, `Gemfile.sourced` and `Gemfile.deploy` are added or updated if there is any remote sources.
+After running `bundle install` or `bundle update`, `Gemfile.ext` is added or updated.
 
-Which means you also have to run `bundle install` or `bundle update` again to update you `Gemfile.lock`.
+You also have to run `bundle install` again to replace your `Gemfile.lock` with a `Gemfile.ext.lock`.
 
 ### Capistrano
 
-The new Gemfile used for deployment should be `Gemfile.deploy` and could be configured by:
+The new Gemfile used must be `Gemfile.ext` and could be configured by:
 
 ```ruby
 # config/deploy.rb
 
-set :bundle_gemfile, -> { release_path.join('Gemfile.deploy') }
+set :bundle_gemfile, -> { release_path.join('Gemfile.ext') }
 ```
+
+### Rails server
+
+If you don't want to run `bundle exec rails server`, you could specify the extended gemfile with:
+
+`BUNDLE_GEMFILE=Gemfile.ext rails server`
 
 ### Upgrading
 
 Clear `.bundle` directory within your project after updating `ext_bundler` gem.
 
-### Notes
+### Bundler configurations
 
-If bundler version is before 2.0, then `github.https` setting is set to true.
+After running `bundle install` or `bundle update`, your `.bundle/config` will be updated accordingly with:
+
+- `BUNDLE_EXT_BUNDLER` set to the current library path
+- `BUNDLE_GITHUB__HTTPS` set to true
+- `BUNDLE_GEMFILE` set to the current `Gemfile.ext` path
 
 This project rocks and uses MIT-LICENSE.
