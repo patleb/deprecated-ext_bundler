@@ -14,9 +14,11 @@ In your project Gemfile:
 # Gemfile
 source 'https://rubygems.org'
 
-group :development do
-  load(Bundler.settings['ext_bundler'] ||= File.join(`gem path ext_bundler`.strip, 'lib', 'ext_bundler', 'bundler.rb'))
-end
+load(Bundler.settings['ext_bundler'] ||= File.join(
+    (File.exist?('EXT_BUNDLER') ? File.readlines('EXT_BUNDLER').first : `gem path ext_bundler`).strip,
+    'lib', 'ext_bundler', 'bundler.rb'
+  )
+)
 
 # ...
 ```

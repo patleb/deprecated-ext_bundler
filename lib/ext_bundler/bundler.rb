@@ -1,4 +1,4 @@
-unless defined?(Bundler::SOURCED_GEMS)
+unless defined?(Bundler::NORMAL_GEMFILE)
   module Bundler
     NORMAL_GEMFILE = '#### NORMAL GEMFILE ####'
     SOURCED_GEMS = '#### SOURCED GEMS ####'
@@ -14,6 +14,7 @@ unless defined?(Bundler::SOURCED_GEMS)
         @_normal_lockfile ||= Pathname.new("#{normal_gemfile}.lock")
       end
 
+      alias_method :old_default_gemfile, :default_gemfile
       def default_gemfile
         return @_default_gemfile if defined?(@_default_gemfile)
 
@@ -45,16 +46,19 @@ unless defined?(Bundler::SOURCED_GEMS)
       end
 
       def create_ext_gemfile
-        if Bundler::VERSION < '2.0'
-          File.open(ext_gemfile, 'w') do |f|
+        File.open(ext_gemfile, 'w') do |f|
+          if Bundler::VERSION < '2.0'
             f.puts 'Bundler.settings["github.https"] = true'
-            f.puts NORMAL_GEMFILE
-            f.puts File.read(normal_gemfile)
           end
-        else
-          FileUtils.copy(normal_gemfile, ext_gemfile)
+          f.puts NORMAL_GEMFILE
+          f.puts File.read(normal_gemfile)
         end
       end
+
+      def root
+        @_root ||= old_default_gemfile.dirname.expand_path
+      end
+
 
       module WithSource
         def definition(unlock = nil)
@@ -102,17 +106,6 @@ unless defined?(Bundler::SOURCED_GEMS)
   module Gem
     Dependency.class_eval do
       module WithSource
-        def initialize(*args)
-          if args.size > 1 && (requirements = args[1]).is_a?(Array) && (source = requirements[0]).is_a?(Hash)
-            if source.any?
-              Bundler.sourced_gems ||= {}
-              Bundler.sourced_gems[gem] = source
-            end
-          end
-
-          super(*args)
-        end
-
         def requirements_list
           list = super
 
