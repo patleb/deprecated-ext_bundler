@@ -23,7 +23,7 @@ load(Bundler.settings['ext_bundler'] ||= File.join(
 # ...
 ```
 
-Add `.bundle` to your project .gitignore if not already added.
+Add `.bundle` and `Gemfile.lock` to your project .gitignore if not already added.
 
 In some other gem's gemspec file:
 
