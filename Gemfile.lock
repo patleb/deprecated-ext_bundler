@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    ext_bundler (1.6.0)
+    ext_bundler (1.7.0)
       bundler
       gem-path (~> 0.6)
 
