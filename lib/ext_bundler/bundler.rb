@@ -1,3 +1,5 @@
+# if !defined?(Bundler::NORMAL_GEMFILE) && (Bundler.settings.instance_variable_get(:@temporary)[:no_install] == false || ARGV[0] == 'update')
+
 unless defined?(Bundler::NORMAL_GEMFILE)
   module Bundler
     NORMAL_GEMFILE = '#### NORMAL GEMFILE ####'
@@ -6,12 +8,12 @@ unless defined?(Bundler::NORMAL_GEMFILE)
     class << self
       attr_accessor :sourced_gems, :sourced_gems_computed
 
-      def normal_gemfile
-        @_normal_gemfile ||= root.join('Gemfile').untaint
+      def normal_lockfile
+        @_normal_lockfile ||= Pathname.new("#{normal_gemfile}.lock").untaint
       end
 
-      def normal_lockfile
-        @_normal_lockfile ||= Pathname.new("#{normal_gemfile}.lock")
+      def normal_gemfile
+        @_normal_gemfile ||= root.join('Gemfile').untaint
       end
 
       alias_method :old_default_gemfile, :default_gemfile
@@ -20,7 +22,7 @@ unless defined?(Bundler::NORMAL_GEMFILE)
 
         if File.exist?(ext_gemfile)
           update_ext_gemfile
-          File.delete(normal_lockfile) if File.exist?(normal_lockfile)
+          FileUtils.copy(ext_lockfile, normal_lockfile)
         else
           create_ext_gemfile
         end
@@ -30,6 +32,10 @@ unless defined?(Bundler::NORMAL_GEMFILE)
 
       def update_default_gemfile
         Bundler.settings['gemfile'] = @_default_gemfile = ext_gemfile
+      end
+
+      def ext_lockfile
+        @_ext_lockfile ||= Pathname.new("#{ext_gemfile}.lock").untaint
       end
 
       def ext_gemfile
