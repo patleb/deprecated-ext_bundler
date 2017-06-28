@@ -1,5 +1,3 @@
-# if !defined?(Bundler::NORMAL_GEMFILE) && (Bundler.settings.instance_variable_get(:@temporary)[:no_install] == false || ARGV[0] == 'update')
-
 unless defined?(Bundler::NORMAL_GEMFILE)
   module Bundler
     NORMAL_GEMFILE = '#### NORMAL GEMFILE ####'
