@@ -29,7 +29,7 @@ unless defined?(Bundler::NORMAL_GEMFILE)
       end
 
       def update_default_gemfile
-        Bundler.settings['gemfile'] = @_default_gemfile = gemfile_ext
+        Bundler.settings['gemfile'] = (@_default_gemfile = gemfile_ext).to_s
       end
 
       def lockfile_ext
@@ -186,6 +186,7 @@ unless defined?(Bundler::NORMAL_GEMFILE)
 
           if source.any?
             Bundler.sourced_gems ||= {}
+            # TODO merge instead of directly assigning
             Bundler.sourced_gems[gem] = source
           end
 
