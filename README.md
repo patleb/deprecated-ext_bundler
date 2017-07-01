@@ -40,9 +40,9 @@ Gem::Specification.new do |s|
 end
 ```
 
-After running `bundle install` or `bundle update`, `Gemfile.ext` is added or updated.
+After running `bundle install` or `bundle update`, `GemfileExt` is added or updated.
 
-You also have to run `bundle install` again to replace your `Gemfile.lock` with a `Gemfile.ext.lock`.
+You also have to run `bundle install` again to replace your `Gemfile.lock` with a `GemfileExt.lock`.
 
 ### Bundler configurations
 
@@ -50,7 +50,7 @@ After running `bundle install` or `bundle update`, your `.bundle/config` will be
 
 - `BUNDLE_EXT_BUNDLER` set to the current library path
 - `BUNDLE_GITHUB__HTTPS` set to true
-- `BUNDLE_GEMFILE` set to the current `Gemfile.ext` path
+- `BUNDLE_GEMFILE` set to the current `GemfileExt` path
 
 ### Upgrading
 
@@ -60,22 +60,22 @@ Clear `.bundle` directory within your project after updating `ext_bundler` gem.
 
 If you don't want to run `bundle exec rails server`, you could specify the extended gemfile with:
 
-`BUNDLE_GEMFILE=Gemfile.ext rails server`
+`BUNDLE_GEMFILE=GemfileExt rails server`
 
 ### Capistrano
 
-The new Gemfile used must be `Gemfile.ext` and could be configured by capistrano-bundler like this:
+The new Gemfile used must be `GemfileExt` and could be configured by capistrano-bundler like this:
 
 ```ruby
 # config/deploy.rb
 
-set :bundle_gemfile, -> { 'Gemfile.ext' }
+set :bundle_gemfile, -> { 'GemfileExt' }
 ```
 
 Bundler also needs to know where to find `ext_bundler` and can be configured by [Capee](https://github.com/patleb/capee/blob/master/lib/capistrano/tasks/capee/deploy.rb#L51);
 
 ### Passenger
 
-Passenger needs to know where is the `Gemfile.ext` and can be configured by [Capee](https://github.com/patleb/capee/blob/master/config/nginx.app.conf.erb#L31).
+Passenger needs to know where is the `GemfileExt` and can be configured by [Capee](https://github.com/patleb/capee/blob/master/config/nginx.app.conf.erb#L31).
 
 This project rocks and uses MIT-LICENSE.

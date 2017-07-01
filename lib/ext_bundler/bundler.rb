@@ -18,39 +18,39 @@ unless defined?(Bundler::NORMAL_GEMFILE)
       def default_gemfile
         return @_default_gemfile if defined?(@_default_gemfile)
 
-        if File.exist?(ext_gemfile)
-          update_ext_gemfile
-          FileUtils.copy(ext_lockfile, normal_lockfile)
+        if File.exist?(gemfile_ext)
+          update_gemfile_ext
+          FileUtils.copy(lockfile_ext, normal_lockfile)
         else
-          create_ext_gemfile
+          create_gemfile_ext
         end
 
         update_default_gemfile
       end
 
       def update_default_gemfile
-        Bundler.settings['gemfile'] = @_default_gemfile = ext_gemfile
+        Bundler.settings['gemfile'] = @_default_gemfile = gemfile_ext
       end
 
-      def ext_lockfile
-        @_ext_lockfile ||= Pathname.new("#{ext_gemfile}.lock").untaint
+      def lockfile_ext
+        @_lockfile_ext ||= Pathname.new("#{gemfile_ext}.lock").untaint
       end
 
-      def ext_gemfile
-        @_ext_gemfile ||= root.join('Gemfile.ext').untaint
+      def gemfile_ext
+        @_gemfile_ext ||= root.join('GemfileExt').untaint
       end
 
-      def update_ext_gemfile
+      def update_gemfile_ext
         content = File.read(normal_gemfile)
-        content = File.read(ext_gemfile).sub(
+        content = File.read(gemfile_ext).sub(
           /#{NORMAL_GEMFILE}(.*)#{SOURCED_GEMS}/m,
           "#{NORMAL_GEMFILE}\n#{content}#{SOURCED_GEMS}"
         )
-        File.write(ext_gemfile, content)
+        File.write(gemfile_ext, content)
       end
 
-      def create_ext_gemfile
-        File.open(ext_gemfile, 'w') do |f|
+      def create_gemfile_ext
+        File.open(gemfile_ext, 'w') do |f|
           if Bundler::VERSION < '2.0'
             f.puts 'Bundler.settings["github.https"] = true'
           end
@@ -85,9 +85,9 @@ unless defined?(Bundler::NORMAL_GEMFILE)
           def evaluate(gemfile, lockfile, unlock)
             return super unless (paths = Bundler.sourced_gems)
 
-            Bundler.create_ext_gemfile
+            Bundler.create_gemfile_ext
 
-            File.open(Bundler.ext_gemfile, 'a') do |f|
+            File.open(Bundler.gemfile_ext, 'a') do |f|
               f.puts Bundler::SOURCED_GEMS
               paths.each do |name, options|
                 options = options.each_with_object([]) do |(key, value), memo|
@@ -99,7 +99,7 @@ unless defined?(Bundler::NORMAL_GEMFILE)
 
             Bundler.update_default_gemfile
 
-            super(Bundler.ext_gemfile, lockfile, unlock)
+            super(Bundler.gemfile_ext, lockfile, unlock)
           end
         end
         prepend WithSource
