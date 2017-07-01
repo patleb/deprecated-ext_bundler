@@ -74,7 +74,7 @@ set :bundle_gemfile, -> { 'GemfileExt' }
 
 Bundler also needs to know where to find `ext_bundler` and can be configured by [Capee](https://github.com/patleb/capee/blob/master/lib/capistrano/tasks/capee/deploy.rb#L51);
 
-### Passenger
+### Passenger + Nginx
 
 Passenger needs to know where is the `GemfileExt` and can be configured by [Capee](https://github.com/patleb/capee/blob/master/config/nginx.app.conf.erb#L31).
 
