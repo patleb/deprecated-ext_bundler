@@ -2,6 +2,7 @@ unless defined?(Bundler::NORMAL_GEMFILE)
   module Bundler
     NORMAL_GEMFILE = '#### NORMAL GEMFILE ####'
     SOURCED_GEMS = '#### SOURCED GEMS ####'
+    SUPPORTED_KEYS = %w(group groups git branch ref tag require submodules platform platforms)
 
     class << self
       attr_accessor :sourced_gems, :sourced_gems_computed
@@ -18,39 +19,40 @@ unless defined?(Bundler::NORMAL_GEMFILE)
       def default_gemfile
         return @_default_gemfile if defined?(@_default_gemfile)
 
-        if File.exist?(gemfile_ext)
-          update_gemfile_ext
-          FileUtils.copy(lockfile_ext, normal_lockfile)
+        if File.exist?(ext_gemfile)
+          update_ext_gemfile
+          FileUtils.copy(ext_lockfile, normal_lockfile)
         else
-          create_gemfile_ext
+          create_ext_gemfile
+          FileUtils.copy(normal_lockfile, ext_lockfile)
         end
 
         update_default_gemfile
       end
 
       def update_default_gemfile
-        Bundler.settings['gemfile'] = (@_default_gemfile = gemfile_ext).to_s
+        Bundler.settings['gemfile'] = (@_default_gemfile = ext_gemfile).to_s
       end
 
-      def lockfile_ext
-        @_lockfile_ext ||= Pathname.new("#{gemfile_ext}.lock").untaint
+      def ext_lockfile
+        @_ext_lockfile ||= Pathname.new("#{ext_gemfile}.lock").untaint
       end
 
-      def gemfile_ext
-        @_gemfile_ext ||= root.join('GemfileExt').untaint
+      def ext_gemfile
+        @_ext_gemfile ||= root.join('ExtGemfile').untaint
       end
 
-      def update_gemfile_ext
+      def update_ext_gemfile
         content = File.read(normal_gemfile)
-        content = File.read(gemfile_ext).sub(
+        content = File.read(ext_gemfile).sub(
           /#{NORMAL_GEMFILE}(.*)#{SOURCED_GEMS}/m,
           "#{NORMAL_GEMFILE}\n#{content}#{SOURCED_GEMS}"
         )
-        File.write(gemfile_ext, content)
+        File.write(ext_gemfile, content)
       end
 
-      def create_gemfile_ext
-        File.open(gemfile_ext, 'w') do |f|
+      def create_ext_gemfile
+        File.open(ext_gemfile, 'w') do |f|
           if Bundler::VERSION < '2.0'
             f.puts 'Bundler.settings["github.https"] = true'
           end
@@ -83,23 +85,36 @@ unless defined?(Bundler::NORMAL_GEMFILE)
       class << self
         module WithSource
           def evaluate(gemfile, lockfile, unlock)
-            return super unless (paths = Bundler.sourced_gems)
+            return super unless Bundler.sourced_gems
 
-            Bundler.create_gemfile_ext
-
-            File.open(Bundler.gemfile_ext, 'a') do |f|
-              f.puts Bundler::SOURCED_GEMS
-              paths.each do |name, options|
-                options = options.each_with_object([]) do |(key, value), memo|
-                  memo << "#{key}: '#{value}'"
-                end
-                f.puts("gem '#{name}', #{options.join(', ')}")
-              end
-            end
-
+            Bundler.create_ext_gemfile
             Bundler.update_default_gemfile
 
-            super(Bundler.gemfile_ext, lockfile, unlock)
+            builder = new
+            File.open(Bundler.ext_gemfile, 'a') do |f|
+              f.puts Bundler::SOURCED_GEMS
+              Bundler.sourced_gems.each do |name, opts_list|
+                opts = opts_list.each_with_object({}) do |opts, memo|
+                  opts = opts.dup
+                  builder.send(:normalize_options, name, [">= 0"], opts)
+                  memo.merge!(opts)
+                end.select do |key, _value|
+                  Bundler::SUPPORTED_KEYS.include?(key)
+                end.each_with_object([]) do |(key, value), memo|
+                  case value
+                  when Array
+                    memo << "#{key}: [:#{value.map(&:to_s).join(', :')}]" unless value.empty?
+                  when String, Symbol
+                    memo << "#{key}: '#{value}'"
+                  else
+                    memo << "#{key}: #{value}"
+                  end
+                end
+                f.puts("gem '#{name}', #{opts.join(', ')}")
+              end
+            end
+            builder.eval_gemfile(Bundler.ext_gemfile)
+            builder.to_definition(lockfile, unlock)
           end
         end
         prepend WithSource
@@ -136,58 +151,17 @@ unless defined?(Bundler::NORMAL_GEMFILE)
         end
       end
       prepend WithSource
-
-      class << self
-        module WithSource
-          def create(input)
-            if input.is_a?(Array) && (source = input[0]).is_a?(Hash)
-              requirement = super([])
-              requirement.source = source
-              requirement
-            else
-              super
-            end
-          end
-
-          def parse(obj)
-            requirement =
-              case obj
-              when Hash
-                Gem::Requirement::DefaultRequirement
-              when Symbol
-                @was_symbol = true
-                return Gem::Requirement::DefaultRequirement
-              when String
-                if @was_symbol
-                  Gem::Requirement::DefaultRequirement
-                else
-                  super
-                end
-              else
-                super
-              end
-            @was_symbol = false
-            requirement
-          end
-        end
-        prepend WithSource
-      end
     end
 
     Specification.class_eval do
       module WithSource
         def add_runtime_dependency(gem, *requirements)
-          source = requirements.last
-          source = if source.is_a?(Hash) && source.instance_of?(Hash)
-            requirements.pop
-          else
-            {}
-          end
+          opts = requirements.last.is_a?(Hash) ? requirements.pop.dup : {}
 
-          if source.any?
+          if opts.any?
             Bundler.sourced_gems ||= {}
-            # TODO merge instead of directly assigning
-            Bundler.sourced_gems[gem] = source
+            Bundler.sourced_gems[gem] ||= []
+            Bundler.sourced_gems[gem] << opts
           end
 
           super
