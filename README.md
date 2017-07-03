@@ -59,7 +59,7 @@ After running `bundle install` or `bundle update`, your `.bundle/config` will be
 
 - `BUNDLE_EXT_BUNDLER` set to the current library path
 - `BUNDLE_GITHUB__HTTPS` set to true
-- `BUNDLE_GEMFILE` set to the current `ExtGemfile` path
+- `BUNDLE_GEMFILE` set to `ExtGemfile`
 
 ### Upgrading
 
