@@ -28,6 +28,7 @@ unless defined?(Bundler::NORMAL_GEMFILE)
         end
 
         update_default_gemfile
+        @_default_gemfile
       end
 
       def update_default_gemfile
