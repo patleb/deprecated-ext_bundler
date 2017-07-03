@@ -31,7 +31,7 @@ unless defined?(Bundler::NORMAL_GEMFILE)
       end
 
       def update_default_gemfile
-        Bundler.settings['gemfile'] = (@_default_gemfile = ext_gemfile).to_s
+        Bundler.settings['gemfile'] = File.basename(@_default_gemfile = ext_gemfile)
       end
 
       def ext_lockfile
@@ -58,6 +58,7 @@ unless defined?(Bundler::NORMAL_GEMFILE)
           end
           f.puts NORMAL_GEMFILE
           f.puts File.read(normal_gemfile)
+          f.puts SOURCED_GEMS
         end
       end
 
@@ -92,7 +93,6 @@ unless defined?(Bundler::NORMAL_GEMFILE)
 
             builder = new
             File.open(Bundler.ext_gemfile, 'a') do |f|
-              f.puts Bundler::SOURCED_GEMS
               Bundler.sourced_gems.each do |name, opts_list|
                 opts = opts_list.each_with_object({}) do |opts, memo|
                   opts = opts.dup
@@ -123,36 +123,6 @@ unless defined?(Bundler::NORMAL_GEMFILE)
   end
 
   module Gem
-    Dependency.class_eval do
-      module WithSource
-        def requirements_list
-          list = super
-
-          if list[0].is_a?(Hash)
-            list = list[0]
-          end
-
-          list
-        end
-      end
-      prepend WithSource
-    end
-
-    Requirement.class_eval do
-      attr_writer :source
-
-      module WithSource
-        def as_list
-          if @source
-            [@source]
-          else
-            super
-          end
-        end
-      end
-      prepend WithSource
-    end
-
     Specification.class_eval do
       module WithSource
         def add_runtime_dependency(gem, *requirements)
