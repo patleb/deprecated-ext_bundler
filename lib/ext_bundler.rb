@@ -25,7 +25,7 @@ module ExtBundler
   def _gem_lock(name, *args)
     @gemfile_lock ||= File.read('Gemfile.lock')
     options = args.last.is_a?(Hash) ? args.pop : {}
-    type = options.delete(:type).try(:to_sym)
+    type = options.delete(:type).&to_sym
 
     version =
       case type
