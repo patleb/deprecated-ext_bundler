@@ -17,5 +17,4 @@ Gem::Specification.new do |s|
   s.files = Dir["lib/**/*", "MIT-LICENSE", "README.md"]
 
   s.add_dependency 'bundler'
-  s.add_dependency 'gem-path', '~> 0.6'
 end

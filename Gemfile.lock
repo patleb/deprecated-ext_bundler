@@ -3,12 +3,10 @@ PATH
   specs:
     ext_bundler (2.0.2)
       bundler
-      gem-path (~> 0.6)
 
 GEM
   remote: https://rubygems.org/
   specs:
-    gem-path (0.6.2)
 
 PLATFORMS
   ruby
