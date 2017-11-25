@@ -3,12 +3,20 @@ module ExtBundler
     if names.is_a? Hash
       @@gem_dev = names
       self.class.send :define_singleton_method, :gem_dev do
-        @@gem_dev.find_all(&:last).map(&:first).each{ |gem| require gem }
+        env = defined?(Rails.env) ? Rails.env.to_sym : false
+        @@gem_dev.find_all do |_gem, options|
+          groups = options[:groups]
+          options[:require] && (groups.empty? || groups.include?(env))
+        end.map(&:first).each{ |gem| require gem }
       end
     else
+      # TODO allow multiple paths
       @gem_dev_path ||= File.readlines('.gem-dev').first.strip if File.exist?('.gem-dev')
       @@gem_dev[names.to_sym] ? gem(names, path: "#{@gem_dev_path}/#{names}", require: false) : gem(names, *args)
-      @@gem_dev[names.to_sym] = (args.last.is_a?(Hash) ? args.last : {})[:require].nil?
+      @@gem_dev[names.to_sym] = {
+        require: (args.last.is_a?(Hash) ? args.last : {})[:require].nil?,
+        groups: @groups.dup,
+      }
     end
   end
 
