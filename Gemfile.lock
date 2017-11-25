@@ -2,6 +2,7 @@ PATH
   remote: .
   specs:
     ext_bundler (2.0.5)
+      bundler
 
 GEM
   remote: https://rubygems.org/
@@ -11,7 +12,6 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  bundler
   ext_bundler!
 
 BUNDLED WITH
