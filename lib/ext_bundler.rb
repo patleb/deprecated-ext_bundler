@@ -7,7 +7,7 @@ module ExtBundler
         @@gem_dev.find_all do |_gem, options|
           groups = options[:groups]
           options[:require] && (groups.empty? || groups.include?(env))
-        end.map(&:first).each{ |gem| require gem }
+        end.map(&:first).each{ |gem| require gem.to_s }
       end
     else
       # TODO allow multiple paths
