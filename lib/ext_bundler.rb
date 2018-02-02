@@ -10,8 +10,10 @@ module ExtBundler
         end.map(&:first).each{ |gem| require gem.to_s }
       end
     else
-      @gem_dev_paths ||= File.readlines('.gem-dev').map(&:strip).compact
-      path = @gem_dev_paths.lazy.map{ |root| File.expand_path("#{root}/#{names}") }.find{ |path| Dir.exist? path }
+      if File.exist? '.gem-dev'
+        @gem_dev_paths ||= File.readlines('.gem-dev').map(&:strip).compact
+        path = @gem_dev_paths.lazy.map{ |root| File.expand_path("#{root}/#{names}") }.find{ |path| Dir.exist? path }
+      end
       @@gem_dev[names.to_sym] ? gem(names, path: path, require: false) : gem(names, *args)
       @@gem_dev[names.to_sym] = {
         require: (args.last.is_a?(Hash) ? args.last : {})[:require].nil?,
