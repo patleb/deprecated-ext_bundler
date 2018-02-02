@@ -46,8 +46,11 @@ module ExtBundler
       end
     version = @gemfile_lock.match(version)[1]
 
-    if type
-      options[type] = version
+    case type
+    when :ref
+      options[:ref] = version
+    when :tag
+      options[:tag] = "#{name}-v#{version}"
     else
       args.unshift(version)
     end
