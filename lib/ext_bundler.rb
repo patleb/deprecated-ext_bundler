@@ -37,14 +37,17 @@ module ExtBundler
     options = args.last.is_a?(Hash) ? args.pop : {}
     type = options.delete(:type)&.to_sym
 
-    version =
+    regexes =
       case type
       when :ref
-        /^  revision: (\w+)(?:\n  branch: \w+)?\n  specs:\n    #{name} \([\w\.]+\)$/m
+        [
+          /^  revision: (\w+)(?:\n  branch: \w+)?\n  specs:\n    #{name} \([\w\.]+\)$/m,
+          /^  remote: .*\/#{name}.git\n  revision: (\w+)(?:\n  branch: \w+)?\n  specs:\n/m
+        ]
       else
-        /^    #{name} \(([\w\.]+)\)$/
+        [/^    #{name} \(([\w\.]+)\)$/]
       end
-    version = @gemfile_lock.match(version)[1]
+    version = regexes.lazy.map{ |regex| @gemfile_lock.match(regex) }.reject(&:nil?).first[1]
 
     case type
     when :ref
