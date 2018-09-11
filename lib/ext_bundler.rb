@@ -15,9 +15,11 @@ module ExtBundler
         path = @gem_dev_paths.lazy.map{ |root| File.expand_path("#{root}/#{names}") }.find{ |path| Dir.exist? path }
       end
       @@gem_dev[names.to_sym] ? gem(names, path: path, require: false) : gem(names, *args)
+      options = args.last.is_a?(Hash) ? args.last : {}
+      groups = options[:group] ? Array(options[:group]) : options[:groups]
       @@gem_dev[names.to_sym] = {
-        require: (args.last.is_a?(Hash) ? args.last : {})[:require].nil?,
-        groups: @groups.dup,
+        require: options[:require].nil?,
+        groups: (groups || @groups.dup).map(&:to_sym),
       }
     end
   end
